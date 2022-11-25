@@ -25,7 +25,7 @@ class GameManager:
     self.BG_COLOR = 'grey'
     self.SQ_COLOR = 'lightgrey'
     self.SQ_STROKE = 'purple'
-    self.SQ_STROKE_WIDTH = 10
+    self.SQ_STROKE_WIDTH = 5
 
     # sanity check
     assert width == height
@@ -77,23 +77,82 @@ class GameManager:
       self.WINDOW = GraphWin("My Window", self.WIDTH, self.HEIGHT)
       self.WINDOW.setBackground(self.BG_COLOR)
     create_window()
+    
+    # end of constructor
 
-  def draw_board(self):
+  # based on the initialization of the game object we should be able to draw all the squares. do so.
+  def draw_squares(self):
     for obj in self.SQUARES:
       obj[0].draw(self.WINDOW)
-      # this APPROXIMATES centering the text in the square. revisit this
-      # eventually, don't actually show these until needed
-      text = Text(Point(\
-        obj[0].getP1().getX() + self.HALF_SQUARE_WIDTH - self.HALF_GAP, \
-        obj[0].getP1().getY() + self.HALF_SQUARE_WIDTH - self.HALF_FONT_SIZE), \
-        obj[1])
-      text.setSize(self.FONT_SIZE)
-      text.setFace(self.FONT_FACE)
-      text.draw(self.WINDOW)
+ 
+  # accepts a (assumed to be square) Rectangle object
+  # returns a Point representing the Rectangle's centerpoint
+  def get_center_of_this_square(self, square):
+    center = Point(\
+      square.getP1().getX() + self.HALF_SQUARE_WIDTH - self.HALF_GAP, \
+      square.getP1().getY() + self.HALF_SQUARE_WIDTH - self.HALF_FONT_SIZE)
+    return center
+
+  # takes a "square tuple"
+  # notices where you clicked and draws the corresponding secret (tuple[1]) in the center of the containing square (tuple[0])
+  def unconditionally_permanently_reveal(self, data):
+    # get the text we're printing
+    center = self.get_center_of_this_square(data[0])
+    text = Text(center, data[1])
+    text.setSize(self.FONT_SIZE)
+    text.setFace(self.FONT_FACE)
+    text.draw(self.WINDOW)
+
+  # takes a Point object
+  # figures out whether the Point is within one of the squares in self.SQUARES
+  # returns a boolean
+  def am_in_square(self, data):
+    # can I get out of having to write all this out?
+    click_x = data.getX()
+    click_y = data.getY()
+
+    for square in self.SQUARES:
+      p1 = square[0].getP1()
+      p1x = p1.getX()
+      p1y = p1.getY()
+
+      p2 = square[0].getP2()
+      p2x = p2.getX()
+      p2y = p2.getY()
+
+      if click_x >= p1x and click_x <= p2x and click_y >= p1y and click_y <= p2y:
+        return True # if you're here, you found a square
+    return False # if you made it here this isn't a square
+
+  # takes a Point object
+  # assumes Point is within one of the square tuples in self.SQUARES
+  # returns that tuple
+  def contents_of_square(self, data):
+      # can I get out of having to write all this out?
+      click_x = data.getX()
+      click_y = data.getY()
+
+      for square in self.SQUARES:
+        p1 = square[0].getP1()
+        p1x = p1.getX()
+        p1y = p1.getY()
+
+        p2 = square[0].getP2()
+        p2x = p2.getX()
+        p2y = p2.getY()
+
+        if click_x >= p1x and click_x <= p2x and click_y >= p1y and click_y <= p2y:
+          return square # if you're here, you found a square
 
 def main():
-  game_instance = GameManager()  
-  game_instance.draw_board()
-  game_instance.WINDOW.getMouse() # on click return a point(click_x, click_y) (and so exit)
-  
-main()
+  game_instance = GameManager()
+  game_instance.draw_squares()
+  while(True):
+    point_clicked = game_instance.WINDOW.getMouse() # Point
+    is_in_square = game_instance.am_in_square(point_clicked) # Bool
+    if is_in_square:
+      specific_square = game_instance.contents_of_square(point_clicked) # SqTup
+      game_instance.unconditionally_permanently_reveal(specific_square) # Void
+    
+if __name__ == '__main__':
+  main()
