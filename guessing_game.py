@@ -64,7 +64,7 @@ class GameManager:
       secrets.append(char)
       secrets.append(char) # we want these to come in pairs. better way?
     truncated_secrets = secrets[0:squares_count]
-    #random.shuffle(truncated_secrets) #turn off shuffle to test matching
+    random.shuffle(truncated_secrets) #turn off shuffle to test matching
     return iter(truncated_secrets)
   
   # helper for create_one_row()
