@@ -31,6 +31,7 @@ class GameManager:
     assert width == height
     assert width % 2 == 0
     assert gap % 2 == 0
+    assert self.SQUARES_COUNT % 2 == 0
     assert math.sqrt(self.SQUARES_COUNT) == int(self.SQUARES_PER_ROW)
     
     # helper for create_one_square()
@@ -40,7 +41,7 @@ class GameManager:
         secrets.append(char)
         secrets.append(char) # we want these to come in pairs
       truncated_secrets = secrets[0:squares_count]
-      random.shuffle(truncated_secrets)
+      #random.shuffle(truncated_secrets) #turn off shuffle to test matching
       return iter(truncated_secrets)
     self.secrets = gen_secrets(self.SQUARES_COUNT) # iterator!
     
@@ -102,6 +103,7 @@ class GameManager:
     text.setSize(self.FONT_SIZE)
     text.setFace(self.FONT_FACE)
     text.draw(self.WINDOW)
+    return text
 
   # takes a Point object
   # figures out whether the Point is within one of the squares in self.SQUARES
@@ -127,6 +129,7 @@ class GameManager:
   # takes a Point object
   # assumes Point is within one of the square tuples in self.SQUARES
   # returns that tuple
+  # I tried reworking this and am_in_square to use a decorator since they're like 99% the same function but I couldn't figure it out in a reasonable amount of time + I'm not sure doing it is useful for final design
   def contents_of_square(self, data):
       # can I get out of having to write all this out?
       click_x = data.getX()
@@ -144,15 +147,49 @@ class GameManager:
         if click_x >= p1x and click_x <= p2x and click_y >= p1y and click_y <= p2y:
           return square # if you're here, you found a square
 
+  # listens for a click, looks at the list of [remaining] Rectangle, string tuples for a containing Rectangle, repeats this until match, returns tuple
+  def get_first_square(self):
+    while(True):
+      point_clicked = self.WINDOW.getMouse() # Point
+      is_in_square = self.am_in_square(point_clicked) # Bool
+      if is_in_square == False:
+        continue # must be in a square
+      first_square = self.contents_of_square(point_clicked)
+      return first_square
+      
+  def get_second_square(self, first_square):
+    while(True):
+      point_clicked = self.WINDOW.getMouse() # Point
+      is_in_square = self.am_in_square(point_clicked) # Bool
+      if is_in_square == False:
+        continue # must be in a square
+      second_square = self.contents_of_square(point_clicked) # SqTup
+      if second_square[0] is first_square[0]:
+        continue # must not be the same square
+      return second_square
+
 def main():
   game_instance = GameManager()
   game_instance.draw_squares()
+
   while(True):
-    point_clicked = game_instance.WINDOW.getMouse() # Point
-    is_in_square = game_instance.am_in_square(point_clicked) # Bool
-    if is_in_square:
-      specific_square = game_instance.contents_of_square(point_clicked) # SqTup
-      game_instance.unconditionally_permanently_reveal(specific_square) # Void
-    
+    square_one = game_instance.get_first_square()
+    text_one = game_instance.unconditionally_permanently_reveal(square_one)
+    square_two = game_instance.get_second_square(square_one)
+    text_two = game_instance.unconditionally_permanently_reveal(square_two)
+    if square_one[1] == square_two[1]:
+      square_one[0].setOutline('green')
+      square_two[0].setOutline('green')
+      game_instance.SQUARES.remove(square_one)
+      game_instance.SQUARES.remove(square_two)
+    else:
+      square_one[0].setOutline('red')
+      square_two[0].setOutline('red')
+      game_instance.WINDOW.getMouse()
+      square_one[0].setOutline('purple')
+      square_two[0].setOutline('purple')
+      text_one.undraw()
+      text_two.undraw()
+
 if __name__ == '__main__':
   main()
