@@ -1,0 +1,8 @@
+{
+  "background" : [0,43,54],
+  "square" : [253,246,227],
+  "square_outline" : [108,113,196],
+  "square_yes_outline" : [133,153,0],
+  "square_maybe_outline" : [181,137,0],
+  "square_no_outline" : [211,54,130]
+}
