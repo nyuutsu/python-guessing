@@ -1,0 +1,1 @@
+I learned Python to tutor a friend in it. One of their assignments was to write "Concentration". I wrote this to figure out how I would go about writing "Contentration", so I could tutor about it more effectively.
